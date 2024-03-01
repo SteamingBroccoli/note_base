@@ -42,26 +42,48 @@
 
  Git 是一个分布式版本控制系统，它允许开发者在本地仓库中工作，并可以将更改推送到远程仓库。
 
+### 基础知识
+
+
+
 ### 指令
 
 #### 连接
 
-ssh： git remote add origin git@github.com:SteamingBroccoli/note_base.git
+ssh：
 
-#### 创建以及初始化
+#### 本地仓库的创建以及推送
 
 ```
-git init：初始化一个新的 Git 仓库。
+1. cd到需要提交的文件夹
 
-git add：将文件添加到暂存区。如果使用 `.` 作为参数，则添加当前目录中的所有文件。
-#git add .
+2. git init：初始化一个新的 Git 仓库。
 
-git clone：克隆一个远程仓库到本地。
+3. git add：将文件添加到暂存区。如果使用 `.` 作为参数，则添加当前目录中的所有文件。
+   #git add .
+
+#SSH连接方式
+4. git remote add origin git@github.com:SteamingBroccoli/note_base.git
+5. git push -u origin master
+
+```
+
+#### 
+
+#### 更新推送
+
+```
+#先保存
+1. git add .  
+2. git commit -m “更新内容”
+2. git push origin “分支名字”
 ```
 
 
 
-#### 查询status 
+ 
+
+#### 查询类指令
 
 ```
 git commit：提交暂存区的更改到本地仓库。可以使用 `-m` 参数来添加提交信息。
@@ -86,7 +108,9 @@ git stash clear：删除所有保存的更改。
 #### 拉取
 
 git merge：将指定的分支合并到当前分支。
-git pull：从远程仓库获取并合并分支。
+git pull：从远程仓库获取并合并分支
+
+
 
 
 
