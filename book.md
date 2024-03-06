@@ -14,9 +14,30 @@
 
 ## 基础知识
 
-=.= 
+本章节为Linux的必备基础知识
+
+
 
 ### Linux系统文件结构
+
+
+
+
+
+
+
+### 进程管理
+
+排查必须掌握的技能
+
+1. 查 （全局 top  lsof 、单个 ps -ef | grep）
+2. 杀 ( 三种 kill -15（默认） -6（强制：危险模式） -1（重载）)
+3. 挂后台
+4. 
+
+
+
+
 
 
 
@@ -58,6 +79,131 @@ rpm -e -nood
 
 
 ### 指令
+
+
+
+
+
+### 正则表达式（重点掌握）
+
+
+
+
+
+### 通配符（重点掌握）
+
+
+
+| **字符** | **说明**                                                     | **示例**                                      |
+| -------- | ------------------------------------------------------------ | --------------------------------------------- |
+| *        | 匹配任意字符数。 您可以在字符串中使用星号 (*****)。          | ls /opt/my*.txt                               |
+| ?        | 在特定位置中匹配单个字母。                                   | ls /opt/myfis?.txt                            |
+| [ ]      | 匹配方括号中的字符。[abd]，[a-z]                             | ls /opt/myfirs[a-z].txt                       |
+| !        | 在方括号中排除字符 [!abcd]   [!a-z]                          | ls  myfirs[!a-g].txt                          |
+| -        | 匹配一个范围内的字符。 记住以升序指定字符（A 到 Z，而不是 Z 到 A）。 | [a-z] 小写的a一直到z的序列 [A-Z]  [0-9a-zA-Z] |
+| ^        | 同感叹号、在方括号中排除字符，用法和感叹号一样               | ls [^a-c]yfirst.txt                           |
+
+
+
+### 特殊符号（重点掌握）
+
+
+
+#### 路径
+
+| 符号 | 作用                                                         |
+| ---- | ------------------------------------------------------------ |
+| ~    | 当前登录用户的家目录，对目录操作的命令,cd ,ls,touch,mkdir,find,cat |
+| -    | 上一次工作路径，仅仅是在shell命令行里的作用                  |
+| .    | 当前工作路径，表示当前文件夹本身；或表示隐藏文件 .yuchao.linux |
+| ..   | 上一级目录                                                   |
+
+
+
+#### 引号
+
+引号意义，为什么要用引号
+
+- 在于区分一个字符串的边界
+- 因为linux识别，命令，参数，文件对象，中间是以空格区分的
+
+
+
+单引号：所见即所得，无其他含义
+
+
+
+双引号：可以解析变量、及引用、linux命令
+
+```
+echo 'hello!!*($(pwd)'   "现在时间是$(date)"
+hello!!*($(pwd) 现在时间是Mon Apr 11 11:04:53 CST 2022
+
+echo "现在时间是 $(date '+%F %T')"
+现在时间是 2022-04-11 11:08:26
+```
+
+反引号：可以解析命令
+
+```
+引号嵌套
+echo "当前时间是：`date '+%F %T'`"
+当前时间是：2022-04-11 11:11:23
+
+作用同上
+$(linux命令)
+```
+
+无引号：一般我们都省略了双引号去写linux命令，但是会有歧义，比如空格，建议写引号
+
+
+
+#### 重定向（位移符）
+
+
+
+
+
+#### 其他
+
+- ；分号
+-  \# 注释
+- | 管道符
+- && and
+- || or
+- $(Linux命令) 执行linux命令
+- {} 序列符
+  - 字母序列
+  - 数字序列
+  - 文件名简写
+
+
+
+
+
+
+
+
+
+
+
+## 三剑客（grep - awk - sed）
+
+- grep：过滤关键字信息。主要用于查文本内的数据
+- sed  ：对文本数据继续编辑，修改原文内容
+- awk ：对数据过滤，提取，并能实现格式话输出（或是美观输出）
+
+
+
+### sed
+
+定义：一款软件
+
+作用：
+
+1. 过滤指定字符
+2. 取出指定字符行
+3. 修改文件内容 
 
 
 
@@ -370,6 +516,24 @@ git pull：从远程仓库获取并合并分支
 
 
 
+# 网站架构
+
+基础概念
+
+- 集群
+- 网站负载问题
+  - 负载均衡
+
+- 代理
+  - 正向代理
+  - 反向代理
+
+- mysql转发问题
+
+  
+
+## 集群
+
 
 
 
@@ -396,7 +560,124 @@ Nginx高性能HTTP/Pr0xy服务器
 
 
 
-# 容器虚拟化技术
+# 容器虚拟化技术   docker与k8s
+
+
+
+## docker
+
+分为Linux与windos
+
+
+
+### docker的部署（Linux）
+
+由以下几个步骤
+
+
+
+#### 1.配置Linux内核的流量转发功能
+
+```
+#第一步
+$ cat <<EOF >  /etc/sysctl.d/docker.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward=1
+EOF
+
+#第二步
+# 加载内核防火墙模块，允许流量转发
+# 加载内核防火墙功能参数1
+[root@docker-01 ~]#modprobe br_netfilter
+#确认有记录，就是开启了这个流量转发功能
+[root@docker-01 ~]#lsmod|grep netfilter
+br_netfilter           22256  0 
+bridge                146976  1 br_netfilter
+
+#第三步
+# nginx优化参数
+#对内核tcp参数优化
+# 增加默认tcp链接数等参数修改
+[root@docker-01 ~]#sysctl -p /etc/sysctl.d/docker.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1  # iptables的forward转发功能就没用了
+
+```
+
+
+
+#### 2.安装docker
+
+```
+# 1.基础环境配置
+yum remove docker docker-common docker-selinux docker-engine
+yum install yum-utils device-mapper-persistent-data lvm2
+
+# 2
+wget -O /etc/yum.repos.d/docker-ce.repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 3
+sed -i 's#download.docker.com#mirrors.tuna.tsinghua.edu.cn/docker-ce#g'  /etc/yum.repos.d/docker-ce.repo
+
+# 4
+yum makecache fast
+
+# 5
+# 安装docker-ce  社区版，免费版 docker
+yum install docker-ce -y
+
+# 6
+# 启动
+systemctl start docker
+
+# 7
+# 查看docker服务端进程
+ps -ef|grep docker 
+# 7.1 检查docker版本
+[root@docker-01 ~]#docker version
+
+# 8 
+# 默认
+docker pull  dockerhub 国外站点下载， 太慢
+
+https://hub.docker.com/  #注册，然后，就会有账号密码，里面管理你自己的私有镜像。
+由于是国外，太慢，配置加速器，常见方案有
+
+#不太行
+# 方案1，执行如下脚本即可
+curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io
+========================================================================
+
+# 方案2，用你自己的阿里云镜像加速器
+#在以下这个网站查看自己的阿里云镜像加速器
+https://cr.console.aliyun.com/cn-beijing/instances/mirrors
+
+
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["用你自己的"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+
+# 配置docker镜像下载加速器（去获取你自己的阿里云镜像站，别用别人的）
+# 常见玩法
+[root@docker-01 ~]#cat /etc/docker/daemon.json 
+{
+  "registry-mirrors": ["https://ms9glx6x.mirror.aliyuncs.com"]
+}
+```
+
+
+
+#### 3.试运行nginx
+
+![image-20240306215114653](C:\Users\77401\AppData\Roaming\Typora\typora-user-images\image-20240306215114653.png)
 
 
 
